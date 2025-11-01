@@ -1,0 +1,28 @@
+import random
+
+A = int(input('Enter place: '))
+B = int(input('Enter row: '))
+seats_needed = int(input('Enter number of seats: '))
+
+hall = [[random.randint(0, 1) for place in range(A)] for row in range(B)]
+
+
+def find_free_seats(hall, seats_needed):
+    rows = len(hall)
+    cols = len(hall[0])
+
+    for i in range(rows):
+        booking = 0
+        for j in range(cols):
+
+            if hall[i][j] == 0:
+                booking += 1
+
+                if booking >= seats_needed:
+                    return i, j - seats_needed + 1
+
+            else:
+                booking = 0
+    return None
+
+print(find_free_seats(hall, seats_needed))
