@@ -1,0 +1,29 @@
+from collections import deque
+
+
+def check_brackets(s):
+    # Словарь соответствия открывающих и закрывающих скобок
+    bracket_pairs = {')': '(', '}': '{', ']': '['}
+
+    stack = deque()
+
+    for i, char in enumerate(s):
+        if char in bracket_pairs.values():  # Это открывающая скобка?
+            stack.append((char, i))  # Добавляем её вместе с позицией
+
+        elif char in bracket_pairs.keys():  # Это закрывающая скобка?
+            if not stack or stack[-1][0] != bracket_pairs[char]:
+                return f'Ошибка в позиции {i + 1}'  # Скобки не совпадают!
+
+            # Совпадение найдено, убираем пару из стека
+            stack.pop()
+
+    if stack:
+        # Остались лишние открывающие скобки
+        return f'Ошибка в позиции {stack[0][1] + 1}'
+
+    return 'ok'
+
+
+s = str(input())
+print(check_brackets(s))
