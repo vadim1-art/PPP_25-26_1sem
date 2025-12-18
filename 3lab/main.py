@@ -12,7 +12,6 @@ def find_all_cycles(adjacency_table):
                     cycles.append(cycle)
             return
 
-        # Помечаем вершину как посещенную
         visited[current_node] = 1
         path.append(current_node)
 
@@ -20,7 +19,6 @@ def find_all_cycles(adjacency_table):
         for neighbor in adjacency_table.get(current_node, []):
             if neighbor != parent_node:
                 dfs_recursive(neighbor, current_node, visited, path, cycles, depth + 1)
-        # Возвращаемся назад (backtracking)
         path.pop()
         visited[current_node] = 2
 
@@ -56,7 +54,6 @@ def get_intermediate_states(adjacency_table, start_node):
     states = []
 
     def dfs_with_tracking(current_node, parent_node, visited, path, cycles, depth=0):
-        # Сохраняем состояние
         state = {
             'depth': depth,
             'current_node': current_node,
