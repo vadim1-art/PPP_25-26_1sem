@@ -106,7 +106,7 @@ def main():
 
     tickets = []
 
-    # Простые данные (формат: тип-id;заголовок;приоритет/стори поинты;статус)
+    # Простые данные (формат: тип-id;заголовок;приоритет/story_points;статус)
     tasks = [
         'BUG-101;Неверный расчёт налога;critical;open',
         'F-202;Добавить тёмную тему;5;in_progress',
@@ -120,30 +120,27 @@ def main():
         try:
             ticket = create_ticket(task)
             tickets.append(ticket)
-            print(f"✓ Загружена: {ticket.id}")
+            print(f"Загружена: {ticket.id}")
         except ValueError as e:
-            print(f"✗ Ошибка: {e}")
+            print(f"Ошибка: {e}")
 
     print("\n" + "=" * 60)
     print("Все задачи:")
     for ticket in tickets:
         print(ticket)
 
-    # Фильтр по статусу
     print("\n" + "=" * 60)
     print("Задачи со статусом 'open':")
     open_tasks = [t for t in tickets if t.status == 'open']
     for task in open_tasks:
         print(task)
 
-    # Сортировка по приоритету
     print("\n" + "=" * 60)
-    print("Задачи по приоритету (сначала важные):")
+    print("Задачи по приоритету:")
     sorted_tasks = sorted(tickets, key=lambda x: x.priority, reverse=True)
     for task in sorted_tasks:
         print(task)
 
-    # Поиск
     print("\n" + "=" * 60)
     print("Поиск задач с 'налог':")
     search_term = "налог"
@@ -151,7 +148,6 @@ def main():
     for task in found:
         print(task)
 
-    # Top N
     print("\n" + "=" * 60)
     print("Top 3 самые важные задачи:")
     top_3 = sorted_tasks[:3]
