@@ -1,59 +1,98 @@
-def find_all_cycles(adjacency_table):
-    def dfs_recursive(current_node, parent_node, visited, path, cycles, depth=0):
-        if visited[current_node] == 1:
-            if current_node in path:
-                # Формируем цикл: от первого вхождения current_node до конца пути
-                cycle_start = path.index(current_node)
-                cycle = path[cycle_start:] + [current_node]
-                cycle = normalize_cycle(cycle)
+def find_all_cycles(adj_table):
+    graph = {}
+    for node, edges in adj_table.items():
+        graph[node] = edges if isinstance(edges, list) else [edges]
 
-                if cycle not in cycles:
-                    cycles.append(cycle)
+    all_cycles = set()
+    current_path = []
+    visited_in_path = set()
+
+    def dfs(current_node, start_node=None, depth=0):
+        nonlocal all_cycles, current_path, visited_in_path
+        # Если мы уже посещали эту вершину в текущем пути
+        if current_node in visited_in_path:
+            cycle_start_idx = current_path.index(current_node)
+            cycle = current_path[cycle_start_idx:]
+
+            # Нормализуем цикл: начинаем с наименьшей вершины
+            if len(cycle) > 1:  # Игнорируем петли на одной вершине
+                # Находим индекс минимальной вершины
+                min_idx = min(range(len(cycle)), key=lambda i: cycle[i])
+                normalized_cycle = tuple(cycle[min_idx:] + cycle[:min_idx])
+                normalized_cycle = normalized_cycle + (normalized_cycle[0],)
+                all_cycles.add(normalized_cycle)
             return
 
-        visited[current_node] = 1
-        path.append(current_node)
+        current_path.append(current_node)
+        visited_in_path.add(current_node)
+        # Рекурсивно обходим соседей
+        for neighbor in graph.get(current_node, []):
+            dfs(neighbor, start_node if start_node else current_node, depth + 1)
 
-        # Обход всех соседей текущего узла
-        for neighbor in adjacency_table.get(current_node, []):
-            if neighbor != parent_node:
-                dfs_recursive(neighbor, current_node, visited, path, cycles, depth + 1)
-        path.pop()
-        visited[current_node] = 2
+        current_path.pop()
+        visited_in_path.remove(current_node)
 
-    def normalize_cycle(cycle):
-        if not cycle:
-            return cycle
-
-        min_idx = 0
-        for i in range(1, len(cycle)):
-            if cycle[i] < cycle[min_idx]:
-                min_idx = i
-
-        normalized = cycle[min_idx:] + cycle[:min_idx]
-
-        if len(normalized) > 2:
-            reversed_cycle = normalized[::-1]
-            if reversed_cycle < normalized:
-                return reversed_cycle
-        return normalized
-
-    visited = {node: 0 for node in adjacency_table.keys()}  # 0 - не посещена, 1 - в процессе, 2 - обработана
-    all_cycles = []
-
-    for node in adjacency_table.keys():
-        if visited[node] == 0:
+    # Запускаем поиск из всех вершин
+    for node in graph.keys():
+        if node not in visited_in_path:
             current_path = []
-            dfs_recursive(node, -1, visited, current_path, all_cycles)
+            visited_in_path = set()
+            dfs(node)
+    return [list(cycle) for cycle in all_cycles]
 
-    return all_cycles
+
+def find_all_cycles_with_all_states(adj_table):
+    graph = {}
+    for node, edges in adj_table.items():
+        graph[node] = edges if isinstance(edges, list) else [edges]
+
+    all_cycles = set()
+    current_path = []
+    visited_in_path = set()
+    all_states = []  # Список для хранения всех состояний
+
+    def dfs(current_node, start_node=None, depth=0):
+        nonlocal all_cycles, current_path, visited_in_path, all_states
+        # Проверяем, не посещали ли уже эту вершину в текущем пути
+        if current_node in visited_in_path:
+            cycle_start_idx = current_path.index(current_node)
+            cycle = current_path[cycle_start_idx:] + [current_node]
+
+            if len(cycle) > 2:  # Игнорируем петли и обратные ребра
+                min_idx = min(range(len(cycle) - 1), key=lambda i: cycle[i])
+                normalized_cycle = tuple(cycle[min_idx:-1] + cycle[:min_idx] + [cycle[min_idx]])
+                all_cycles.add(normalized_cycle)
+            return
+
+        current_path.append(current_node)
+        visited_in_path.add(current_node)
+
+        # Рекурсивно обходим соседей
+        for neighbor in graph.get(current_node, []):
+            dfs(neighbor, start_node if start_node else current_node, depth + 1)
+
+        current_path.pop()
+        visited_in_path.remove(current_node)
+    # Запускаем обход из всех вершин
+    for node in graph.keys():
+        if node not in visited_in_path:
+            init_state = {
+                'step': len(all_states) + 1,
+                'action': 'start_new_component',
+                'start_node': node,
+                'found_cycles': list(all_cycles)
+            }
+
+            current_path = []
+            visited_in_path = set()
+            dfs(node)
+
+    return [list(cycle) for cycle in all_cycles], all_states
 
 k_graph = {
     0: [1],
-    1: [0, 2, 3],
-    2: [0, 1],
-    3: [0, 1, 2],
+    1: [0]
 }
 
-cycles_k = find_all_cycles(k_graph)
-print(f"Найденные циклы в K: {cycles_k}")
+cycles_detailed, states = find_all_cycles_with_all_states(k_graph)
+print(f"Найдено циклов: {len(cycles_detailed)}")
